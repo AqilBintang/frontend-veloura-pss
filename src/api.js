@@ -48,13 +48,13 @@ const post = (url, body) =>
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export const loginAPI        = (username, password) =>
-    post('/api/v1/auth/sign-in/', { username, password });
+    post('/api/v1/auth/sign-in', { username, password });
 
 export const registerAPI     = (data) =>
     post('/api/v1/register/', data);
 
 export const refreshTokenAPI = (refresh) =>
-    post('/api/v1/auth/token-refresh/', { refresh });
+    post('/api/v1/auth/token-refresh', { refresh });
 
 // ── Protected endpoints (butuh JWT) ──────────────────────────────────────────
 
