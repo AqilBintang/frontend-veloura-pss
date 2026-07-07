@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+/* ── SweetAlert2 Tema Veloura Visual ── */
+.velo-popup {
+    border-radius: 20px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    padding: 28px !important;
+    box-shadow: 0 20px 60px rgba(6, 61, 48, 0.15) !important;
+}
+
+.velo-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #063D30 !important;
+}
+
+.velo-html {
+    font-size: 14px !important;
+    color: #555 !important;
+}
+
+.velo-btn-confirm {
+    background: #063D30 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: opacity 0.2s !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+
+.velo-btn-confirm:hover {
+    opacity: 0.85 !important;
+}
+
+.velo-btn-cancel {
+    background: transparent !important;
+    color: #063D30 !important;
+    border: 2px solid #d1d5db !important;
+    padding: 10px 24px !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+
+.velo-btn-cancel:hover {
+    border-color: #063D30 !important;
+    background: #f0f0ee !important;
+}
+
+/* Icon color override */
+.swal2-icon.swal2-question {
+    border-color: #063D30 !important;
+    color: #063D30 !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #f5d000 !important;
+    color: #063D30 !important;
+}
+
+/* Toast */
+.swal2-toast .velo-title {
+    font-size: 14px !important;
+}
