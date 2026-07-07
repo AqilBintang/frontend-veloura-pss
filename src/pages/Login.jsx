@@ -64,9 +64,18 @@ const Login = () => {
             });
 
             if (res.id) {
-                // Berhasil — simpan ke registry lokal dan set session
+                // Berhasil register — langsung login untuk dapat JWT token
                 const userData = { username: res.username, email: res.email, phone: reg.phone };
                 registerUser(userData);
+
+                // Hit backend untuk dapat JWT token
+                try {
+                    const loginRes = await loginAPI(reg.username, reg.password);
+                    if (loginRes.access) {
+                        setToken(loginRes.access, loginRes.refresh);
+                    }
+                } catch { /* token tidak dapat, tapi register tetap berhasil */ }
+
                 setUser(userData);
                 toastSuccess(`Registrasi berhasil! Selamat datang, ${res.username}.`);
                 setTimeout(() => navigate("/"), 1500);
@@ -142,10 +151,10 @@ const Login = () => {
                 setIsActive(true);
                 return;
             }
-            // Email terdaftar — langsung login
-            const user = findUserByEmail(email);
-            setUser(user);
-            toastSuccess(`Login berhasil! Selamat datang, ${user.username}.`);
+            // Email terdaftar — langsung set user (JWT sudah ada dari register/login manual)
+            const localUser = findUserByEmail(email);
+            setUser(localUser);
+            toastSuccess(`Login berhasil! Selamat datang, ${localUser.username}.`);
             setTimeout(() => navigate("/"), 1500);
         }
     };
