@@ -1,19 +1,42 @@
-import { getToken, removeUser } from './auth';
+import { getToken, removeUser, getRefreshToken, setToken } from './auth';
 
-// URL backend — dari env var, fallback localhost untuk development
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 // ── Response handler ──────────────────────────────────────────────────────────
 
 const handleResponse = async (res) => {
-    // Token expired atau tidak valid — hapus session lokal
+    const data = await res.json().catch(() => ({}));
+    data._status = res.status;
+    return data;
+};
+
+// Authenticated request — coba refresh token jika 401, baru redirect
+const handleAuthResponse = async (res, retryFn) => {
     if (res.status === 401) {
+        // Coba refresh token dulu
+        const refresh = getRefreshToken();
+        if (refresh) {
+            try {
+                const refreshRes = await fetch(`${BASE_URL}/api/v1/auth/token-refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh }),
+                });
+                const refreshData = await refreshRes.json();
+                if (refreshData.access) {
+                    setToken(refreshData.access, refreshData.refresh || refresh);
+                    // Retry request dengan token baru
+                    if (retryFn) return retryFn();
+                }
+            } catch { /* refresh gagal, lanjut logout */ }
+        }
+        // Token tidak bisa di-refresh — logout
         removeUser();
         window.location.href = '/login';
         throw new Error('Sesi berakhir. Silakan login kembali.');
     }
-    // Parse JSON untuk semua response (termasuk error)
     const data = await res.json().catch(() => ({}));
+    data._status = res.status;
     return data;
 };
 
@@ -22,21 +45,26 @@ const handleResponse = async (res) => {
 const get = (url) =>
     fetch(`${BASE_URL}${url}`).then(handleResponse);
 
-// Request dengan JWT token di header Authorization
-const authGet = (url) =>
-    fetch(`${BASE_URL}${url}`, {
-        headers: { 'Authorization': `Bearer ${getToken()}` },
-    }).then(handleResponse);
+const authGet = (url) => {
+    const doFetch = () =>
+        fetch(`${BASE_URL}${url}`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` },
+        }).then(res => handleAuthResponse(res, doFetch));
+    return doFetch();
+};
 
-const authPost = (url, body) =>
-    fetch(`${BASE_URL}${url}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify(body),
-    }).then(handleResponse);
+const authPost = (url, body) => {
+    const doFetch = () =>
+        fetch(`${BASE_URL}${url}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify(body),
+        }).then(res => handleAuthResponse(res, doFetch));
+    return doFetch();
+};
 
 const post = (url, body) =>
     fetch(`${BASE_URL}${url}`, {
@@ -47,21 +75,21 @@ const post = (url, body) =>
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
-export const loginAPI        = (username, password) =>
+export const loginAPI = (username, password) =>
     post('/api/v1/auth/sign-in', { username, password });
 
-export const registerAPI     = (data) =>
+export const registerAPI = (data) =>
     post('/api/v1/register/', data);
 
 export const refreshTokenAPI = (refresh) =>
     post('/api/v1/auth/token-refresh', { refresh });
 
-// ── Protected endpoints (butuh JWT) ──────────────────────────────────────────
+// ── Protected endpoints ───────────────────────────────────────────────────────
 
-export const getMe          = ()     => authGet('/api/v1/me/');
-export const getMyBookings  = ()     => authGet('/api/v1/my-bookings/');
-export const createBooking  = (data) => authPost('/api/v1/create-booking/', data);
-export const createReview   = (data) => authPost('/api/v1/create-review/', data);
+export const getMe         = ()     => authGet('/api/v1/me/');
+export const getMyBookings = ()     => authGet('/api/v1/my-bookings/');
+export const createBooking = (data) => authPost('/api/v1/create-booking/', data);
+export const createReview  = (data) => authPost('/api/v1/create-review/', data);
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
 
@@ -80,6 +108,7 @@ export const getPackageDetail = (id) =>
 export const getPackageStat       = ()   => get('/api/v1/package-stats/');
 export const getBookingStat       = ()   => get('/api/v1/booking-stats/');
 export const getBookingDetail     = (id) => get(`/api/v1/bookings/${id}/`);
+export const getPhotographerStats = ()   => get('/api/v1/photographers/');
 
 export const getReviews = () =>
     get('/api/v1/reviews/').then(list =>
@@ -92,9 +121,9 @@ export const getReviews = () =>
             : []
     );
 
-export const getReviewStat        = ()   => get('/api/v1/review-stats/');
-export const getPhotographerStats = ()   => get('/api/v1/photographers/');
+export const getReviewStat = () => get('/api/v1/review-stats/');
 
 // ── Legacy ────────────────────────────────────────────────────────────────────
-export const getCourseStats  = ()   => get('/api/v1/package-stats/');
+export const getCourseStats  = () => get('/api/v1/package-stats/');
 export const getCourseDetail = (id) => get(`/api/v1/bookings/${id}/`);
+export const getBookings     = () => getMyBookings();

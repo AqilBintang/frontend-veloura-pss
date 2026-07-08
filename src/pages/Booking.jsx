@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import handPointLeft from '../assets/svg/hand-point-left.svg';
 import { getPackages, createBooking } from '../api';
-import { getUser } from '../auth';
+import { getUser, getToken } from '../auth';
 import { confirmBooking, toastError } from '../utils/swal';
 import Loader from '../components/Loader';
 
@@ -37,6 +37,12 @@ const Booking = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Cek token JWT dulu — login Google tidak punya token
+        if (!getToken()) {
+            toastError("Silakan login ulang dengan username dan password untuk melakukan pemesanan.");
+            return;
+        }
 
         // Verifikasi 2 langkah sebelum submit
         const confirmed = await confirmBooking(

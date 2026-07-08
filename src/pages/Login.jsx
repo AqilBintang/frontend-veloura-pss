@@ -139,7 +139,7 @@ const Login = () => {
             setEmailReadOnly(true);
             setErrors((prev) => ({ ...prev, email: "" }));
         } else {
-            // Login mode — cek apakah email sudah terdaftar
+            // Login mode — cek apakah email sudah terdaftar di registry lokal
             if (!isEmailRegistered(email)) {
                 toastError(`Alamat ${email} belum terdaftar. Silakan register terlebih dahulu.`);
                 setReg((prev) => ({
@@ -151,8 +151,19 @@ const Login = () => {
                 setIsActive(true);
                 return;
             }
-            // Email terdaftar — langsung set user (JWT sudah ada dari register/login manual)
+
+            // Email terdaftar — ambil data user lokal
             const localUser = findUserByEmail(email);
+
+            // Coba login ke backend dengan username (password tidak tersimpan di localStorage)
+            // Jika gagal, tetap set user tanpa JWT (fitur terbatas)
+            try {
+                const loginRes = await loginAPI(localUser.username, '');
+                if (loginRes.access) {
+                    setToken(loginRes.access, loginRes.refresh);
+                }
+            } catch { /* login backend gagal, lanjut tanpa JWT */ }
+
             setUser(localUser);
             toastSuccess(`Login berhasil! Selamat datang, ${localUser.username}.`);
             setTimeout(() => navigate("/"), 1500);
