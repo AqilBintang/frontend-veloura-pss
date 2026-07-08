@@ -123,7 +123,7 @@ const Login = () => {
      * Pada form Register: auto-fill email dari akun Google.
      * Pada form Login: langsung login dengan data Google.
      */
-    const handleGoogleResponse = (response) => {
+    const handleGoogleResponse = async (response) => {
         const payload = decodeGoogleJwt(response.credential);
         if (!payload) return;
 
