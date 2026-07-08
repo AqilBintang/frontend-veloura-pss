@@ -6,6 +6,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 const handleResponse = async (res) => {
     const data = await res.json().catch(() => ({}));
+    // Jika response adalah array, kembalikan langsung
+    if (Array.isArray(data)) return data;
     data._status = res.status;
     return data;
 };
