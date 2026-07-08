@@ -88,7 +88,8 @@ export const refreshTokenAPI = (refresh) =>
 
 export const getMe         = ()     => authGet('/api/v1/me/');
 export const getMyBookings = ()     => authGet('/api/v1/my-bookings/');
-export const createBooking = (data) => authPost('/api/v1/create-booking/', data);
+export const createBooking = (data) => post('/api/v1/book/', data);
+export const createBookingAuth = (data) => authPost('/api/v1/create-booking/', data);
 export const createReview  = (data) => authPost('/api/v1/create-review/', data);
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
